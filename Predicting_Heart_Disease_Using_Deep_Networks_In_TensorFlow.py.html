@@ -1,0 +1,201 @@
+#!/usr/bin/env python
+# coding: utf-8
+
+# In[1]:
+
+
+#In this project we will be developing a neural network 
+#To predict disease diagnosis in the cornary artery
+
+import sys
+import pandas as pd
+import numpy as np
+import sklearn 
+import matplotlib
+import keras
+
+
+# In[2]:
+
+
+import matplotlib.pyplot as plt
+from pandas.plotting import scatter_matrix
+
+
+# In[3]:
+
+
+#Begin importing dataset 
+url = "http://archive.ics.uci.edu/ml/machine-learning-databases/heart-disease/processed.cleveland.data"
+#import as a pandas dataframe
+#define each column as name (attributes)
+
+names= ['age',
+        'sex',
+        'cp',
+        'trestbps',
+        'chol',
+        'fbs',
+        'restecg',
+        'thalach',
+        'exang',
+        'oldpeak',
+        'slope',
+        'ca',
+        'thal',
+        'class']
+
+#read the csv file and map it to the above colunmn names
+
+clevland=pd.read_csv(url, names=names)
+
+#print some properties of the data
+
+print(clevland.shape)
+print (clevland.loc[1])
+
+#Printed below is a sample patient who has heart disease 
+#Numbers 1-4 indicate indivduals with varying degrees of heafrt disease 
+
+
+# In[4]:
+
+
+#print last twenty or so data point
+clevland.loc[20:]
+
+
+# In[5]:
+
+
+#There is some missing data in the dataset
+#In our data preprocessing we are going to nhave to take care of the missing
+#data
+
+data= clevland[~clevland.isin(['?'])]
+print(data)
+
+
+# In[6]:
+
+
+#Drop rows with NaN values from the data frame
+data= data.dropna(axis=0)
+data.loc[200:]
+
+
+# In[7]:
+
+
+#Print the shape of the dataset again
+print (data.shape)
+print(data.dtypes)
+
+#Find the datatypes of each of the attributes to each patient 
+
+
+# In[8]:
+
+
+#transform all data to numerical data such that there are no objects
+
+data= data.apply(pd.to_numeric)
+print (data.dtypes)
+
+
+# In[9]:
+
+
+#Describe the data
+data.describe()
+
+
+# In[10]:
+
+
+#plot histograms for all of the variables
+data.hist(figsize = (12,12))
+plt.show()
+
+
+# In[11]:
+
+
+#Split dataset to split data into trainging and testing data
+
+#Create X and Y data sets for training 
+
+from sklearn import model_selection
+X = np.array(data.drop(['class'],1))
+y= np.array(data['class'])
+
+X_train,X_test,y_train,y_test = model_selection.train_test_split(X,
+                                                                 y,test_size=0.2)
+
+
+# In[12]:
+
+
+print(y_test[:10])
+#Below are sample values for the class column
+
+
+# In[13]:
+
+
+#Convert values above to categorical data
+from keras.utils.np_utils import to_categorical
+Y_train= to_categorical(y_train, num_classes=None)
+Y_Test= to_categorical(y_test, num_classes=None)
+
+print Y_train.shape
+print Y_train[:10]
+
+
+# In[14]:
+
+
+from keras.models import Sequential
+from keras.layers import Dense
+from keras.optimizers import Adam
+
+# define a function to build the keras model
+def create_model():
+    # create model
+    model = Sequential()
+    model.add(Dense(8, input_dim=13, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(4, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(5, activation='softmax'))
+    
+    # compile model
+    adam = Adam(lr=0.001)
+    model.compile(loss='categorical_crossentropy', optimizer=adam, metrics=['accuracy'])
+    return model
+
+model = create_model()
+
+print(model.summary())
+
+
+# In[ ]:
+
+
+#Fit the model to the trainging data
+#epochs are one time through all of the training 
+#batch size is the number of instances to look at before recompling the 
+#parameters
+
+model.fit(X_train, Y_train, epochs=10, batch_size=10, verbose = 1)
+
+
+# In[ ]:
+
+
+
+
+
+# In[ ]:
+
+
+
+
